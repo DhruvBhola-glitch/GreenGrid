@@ -1,0 +1,10 @@
+# Node & Python
+client/node_modules/
+__pycache__/
+*.pyc
+
+# Env
+.env
+
+# Build
+client/build/
