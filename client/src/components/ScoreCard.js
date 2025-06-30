@@ -1,10 +1,10 @@
-// src/components/ScoreCard.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const ScoreCard = ({ wallet }) => {
   const [tokens, setTokens] = useState(null);
   const [carbon, setCarbon] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!wallet) return;
@@ -13,10 +13,20 @@ const ScoreCard = ({ wallet }) => {
       try {
         const scoreRes = await axios.get(`http://localhost:5000/score/${wallet}`);
         const carbonRes = await axios.get(`http://localhost:5000/carbon/${wallet}`);
-        setTokens(scoreRes.data.green_score || 0);
-        setCarbon(carbonRes.data.carbon_offset_kg || 0);
+
+        const score = scoreRes.data.green_score;
+        const offset = carbonRes.data.carbon_offset_kg;
+
+        if (typeof score === 'number' && typeof offset === 'number') {
+          setTokens(score);
+          setCarbon(offset);
+          setError(false);
+        } else {
+          setError(true);
+        }
       } catch (err) {
         console.error("Error fetching score:", err);
+        setError(true);
       }
     };
 
@@ -24,6 +34,14 @@ const ScoreCard = ({ wallet }) => {
   }, [wallet]);
 
   if (!wallet) return null;
+
+  if (error) {
+    return (
+      <div className="bg-red-500/20 text-red-300 p-4 rounded-xl text-center">
+        ❌ Failed to fetch data. Please check your wallet address or ensure backend is running.
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-br from-green-700 via-gray-900 to-black rounded-2xl shadow-xl p-6 w-full flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in transition-all duration-300">
